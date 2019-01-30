@@ -1,0 +1,11 @@
+﻿@model int
+@{
+    Layout = null;
+}
+<div class="btn-group" role="group">
+    <td style="width:150px">
+        <a type="button" class="btn btn-primary" href="@Url.Action("Edit/"+Model)"><i class="fas fa-edit"></i></a>
+        <a type="button" class="btn btn-success" href="@Url.Action("Details/"+Model)"><i class="fas fa-list-alt"></i></a>
+        <a type="button" class="btn btn-danger" href="@Url.Action("Delete/"+Model)"><i class="fas fa-trash-alt"></i></a>
+    </td>
+</div>
