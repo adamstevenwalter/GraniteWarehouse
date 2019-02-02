@@ -22,7 +22,6 @@
                 @Html.DisplayNameFor(m => m.Name)
             </th>
             <th></th>
-            <th></th>
 
         </tr>
 
@@ -32,9 +31,7 @@
                 <td>
                     @Html.DisplayFor(m => item.Name)
                 </td>
-                <td>
-                    <partial name="_TableButtonPartial" model="item.Id" />
-                </td>
+                <partial name="_TableButtonPartial" model="item.Id" />
             </tr>
 
         }
