@@ -19,9 +19,10 @@ namespace GraniteWarehouse.Areas.Admin.Controllers
         private readonly HostingEnvironment _hostingEnviornment;
         [BindProperty]
         public ProductViewModels ProductsVM { get; set; }
-        public ProductsController(ApplicationDbContext db)
+        public ProductsController(ApplicationDbContext db, HostingEnvironment hostingEnvironment)
         {
             _db = db;
+            _hostingEnviornment = hostingEnvironment;
             ProductsVM = new ProductViewModels()
             {
                 ProductTypes = _db.ProductTypes.ToList(),
@@ -53,16 +54,17 @@ namespace GraniteWarehouse.Areas.Admin.Controllers
                 return View(ProductsVM);
             }
 
+            //saves the information from the form to the database, except for the image
             _db.Products.Add(ProductsVM.Products);
             await _db.SaveChangesAsync();
 
-            //Product was saved, but not the physical image...
-
+            //Product was saved, but not the physical image..
             //Save physical image
-
+            //path to wwwroot since it varies based on hosting enviornment
             string webRootPath = _hostingEnviornment.WebRootPath;
+            //any files attatched to the form get added to this array
             var files = HttpContext.Request.Form.Files;
-
+            //find the Id of the product we are adding
             var productsFromDb = _db.Products.Find(ProductsVM.Products.Id);
 
             if (files.Count != 0)
@@ -80,6 +82,38 @@ namespace GraniteWarehouse.Areas.Admin.Controllers
                 productsFromDb.Image = @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + extension;
 
             }
+            else
+            {
+                //user didn't give us an image so we'll upload the placeholder image
+                var uploads = Path.Combine(webRootPath, SD.ImageFolder + @"\" + SD.DefaultProductImage);
+                System.IO.File.Copy(uploads, webRootPath + @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + ".jpg");
+                productsFromDb.Image = @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + ".jgp";
+            }
+
+            //save again so that the image path actually gets saved to the database
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        //Get Edit
+        public async Task<IActionResult> Edit (int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            ProductsVM.Products = await _db.Products
+                .Include(m => m.SpecialTags)
+                .Include(m => m.ProductTypes)
+                .SingleOrDefaultAsync(m => m.Id == id);
+
+            if (ProductsVM.Products == null)
+            {
+                return NotFound();
+            }
+
+            return View(ProductsVM);
         }
     }
 }
