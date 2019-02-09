@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using GraniteWarehouse.Data;
+using GraniteWarehouse.Models;
 using GraniteWarehouse.Models.ViewModels;
 using GraniteWarehouse.Utility;
 using Microsoft.AspNetCore.Hosting.Internal;
@@ -114,6 +115,125 @@ namespace GraniteWarehouse.Areas.Admin.Controllers
             }
 
             return View(ProductsVM);
+        }
+
+        //Post : Edit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id)
+        {
+            if (ModelState.IsValid)
+            {
+                string webRootPath = _hostingEnviornment.WebRootPath;
+                var files = HttpContext.Request.Form.Files;
+
+                var productFromDb = _db.Products.Where(m => m.Id == ProductsVM.Products.Id).FirstOrDefault();
+
+                if (files.Count > 0 && files[0] != null)
+                {
+                    //if user uploads a new image
+                    var uploads = Path.Combine(webRootPath, SD.ImageFolder);
+                    var extension_new = Path.GetExtension(files[0].FileName);
+                    var extension_old = Path.GetExtension(productFromDb.Image);
+
+                    if (System.IO.File.Exists(Path.Combine(uploads, ProductsVM.Products.Id + extension_old)))
+                    {
+                        System.IO.File.Delete(Path.Combine(uploads, ProductsVM.Products.Id + extension_old));
+                    }
+                    using (var filestream = new FileStream(Path.Combine(uploads, ProductsVM.Products.Id + extension_new), FileMode.Create))
+                    {
+                        files[0].CopyTo(filestream);
+                    }
+                    ProductsVM.Products.Image = @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + extension_new;
+                }
+
+                if (ProductsVM.Products.Image != null)
+                {
+                    productFromDb.Image = ProductsVM.Products.Image;
+                }
+
+                productFromDb.Name = ProductsVM.Products.Name;
+                productFromDb.Price = ProductsVM.Products.Price;
+                productFromDb.Available = ProductsVM.Products.Available;
+                productFromDb.ProductTypeId = ProductsVM.Products.ProductTypeId;
+                productFromDb.SpecialTagsId = ProductsVM.Products.SpecialTagsId;
+                productFromDb.ShadeColor = ProductsVM.Products.ShadeColor;
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(ProductsVM);
+        }
+
+        //Get Details
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            ProductsVM.Products = await _db.Products
+                .Include(m => m.SpecialTags)
+                .Include(m => m.ProductTypes)
+                .SingleOrDefaultAsync(m => m.Id == id);
+
+            if (ProductsVM.Products == null)
+            {
+                return NotFound();
+            }
+
+            return View(ProductsVM);
+        }
+
+        //Get Delete
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            ProductsVM.Products = await _db.Products
+                .Include(m => m.SpecialTags)
+                .Include(m => m.ProductTypes)
+                .SingleOrDefaultAsync(m => m.Id == id);
+
+            if (ProductsVM.Products == null)
+            {
+                return NotFound();
+            }
+
+            return View(ProductsVM);
+        }
+
+        //POST : Delete
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            string webRootPath = _hostingEnviornment.WebRootPath;
+            Products products = await _db.Products.FindAsync(id);
+
+            if (products == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var uploads = Path.Combine(webRootPath, SD.ImageFolder);
+                var extension = Path.GetExtension(products.Image);
+
+                if (System.IO.File.Exists(Path.Combine(uploads, products.Id + extension)))
+                {
+                    System.IO.File.Delete(Path.Combine(uploads, products.Id + extension));
+                }
+                _db.Products.Remove(products);
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }
