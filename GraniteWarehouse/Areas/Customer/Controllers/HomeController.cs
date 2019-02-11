@@ -5,34 +5,54 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using GraniteWarehouse.Models;
+using GraniteWarehouse.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace GraniteWarehouse.Controllers
 {
     [Area("Customer")]
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly ApplicationDbContext _db;
+
+        public HomeController(ApplicationDbContext db)
         {
-            return View();
+            _db = db;
         }
 
-        public IActionResult About()
+        public async Task<IActionResult> Index()
         {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
+            var productList = await _db.Products
+                .Include(m => m.ProductTypes)
+                .Include(m => m.SpecialTags)
+                .ToListAsync();
+            return View(productList);
         }
 
-        public IActionResult Contact()
+        public async Task<IActionResult> Details(int id)
         {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
+            var product = await _db.Products
+                .Include(m => m.ProductTypes)
+                .Include(m => m.SpecialTags)
+                .Where(m => m.Id == id)
+                .FirstOrDefaultAsync();
+            return View(product);
         }
 
-        public IActionResult Privacy()
+        [HttpPost,ActionName("Details")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DetailsPost(int id)
         {
-            return View();
+            List<int> lstShoppingCart = HttpContext.Session.Get<List<int>>("ssShoppingCart");
+            if(lstShoppingCart == null)
+            {
+                lstShoppingCart = new List<int>();
+            }
+            lstShoppingCart.Add(id);
+            HttpContext.Session.Set("ssShoppingCart", lstShoppingCart);
+
+            return RedirectToAction("Index", "Home", new { area="Customer"});
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -88,7 +88,7 @@ namespace GraniteWarehouse.Areas.Admin.Controllers
                 //user didn't give us an image so we'll upload the placeholder image
                 var uploads = Path.Combine(webRootPath, SD.ImageFolder + @"\" + SD.DefaultProductImage);
                 System.IO.File.Copy(uploads, webRootPath + @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + ".jpg");
-                productsFromDb.Image = @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + ".jgp";
+                productsFromDb.Image = @"\" + SD.ImageFolder + @"\" + ProductsVM.Products.Id + ".jpg";
             }
 
             //save again so that the image path actually gets saved to the database
