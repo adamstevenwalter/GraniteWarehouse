@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using GraniteWarehouse.Models;
+using GraniteWarehouse.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -85,6 +86,25 @@ namespace GraniteWarehouse.Areas.Identity.Pages.Account
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
+                    //create roles in database. Could probably put this somewhere else for better efficency...
+                    if(!await _roleManager.RoleExistsAsync(SD.AdminEndUser))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(SD.AdminEndUser));
+                    }
+                    if (!await _roleManager.RoleExistsAsync(SD.SuperAdminEndUser))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(SD.SuperAdminEndUser));
+                    }
+
+                    if (Input.IsSuperAdmin)
+                    {
+                        await _userManager.AddToRoleAsync(user, SD.SuperAdminEndUser);
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, SD.AdminEndUser);
+                    }
+
                     _logger.LogInformation("User created a new account with password.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
