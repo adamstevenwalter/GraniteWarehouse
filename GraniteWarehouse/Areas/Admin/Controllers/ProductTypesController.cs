@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using GraniteWarehouse.Data;
 using GraniteWarehouse.Models;
+using GraniteWarehouse.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GraniteWarehouse.Areas.Admin.Controllers
 {
+    [Authorize(Roles = SD.SuperAdminEndUser)]
     [Area("Admin")]
     public class ProductTypesController : Controller
     {
