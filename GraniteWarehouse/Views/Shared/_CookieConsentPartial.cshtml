@@ -10,6 +10,7 @@
 {
     <nav id="cookieConsent" class="navbar navbar-default navbar-fixed-top" role="alert">
         <div class="container">
+            <!--
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#cookieConsent .navbar-collapse">
                     <span class="sr-only">Toggle cookie consent banner</span>
@@ -19,13 +20,14 @@
                 </button>
                 <span class="navbar-brand"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></span>
             </div>
-            <div class="collapse navbar-collapse">
+            -->
+            <div class="navbar-collapse collapse show">
                 <p class="navbar-text">
-                    Use this space to summarize your privacy and cookie use policy.
+                    This site uses cookies to use our shopping cart feature. Click "Accept" to accept cookies and continue.
                 </p>
                 <div class="navbar-right">
                     <a asp-controller="Home" asp-action="Privacy" class="btn btn-info navbar-btn">Learn More</a>
-                    <button type="button" class="btn btn-default navbar-btn" data-cookie-string="@cookieString">Accept</button>
+                    <button type="button" class="btn btn-success" data-cookie-string="@cookieString" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="true">Accept</button>
                 </div>
             </div>
         </div>
